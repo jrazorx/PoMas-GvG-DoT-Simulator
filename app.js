@@ -1203,6 +1203,52 @@ const ui = {
         });
     },
 
+ // --- Helper de Minification de l'historique ---
+    _minifyHistory(history) {
+        return history.map(h => {
+            const min = { a: h.actor, c: h.action };
+            if (h.delta) {
+                min.d = {};
+                if (h.delta.weather !== undefined) min.d.w = h.delta.weather;
+                if (h.delta.field !== undefined) min.d.f = h.delta.field;
+                SIDES.forEach(s => {
+                    const sc = s.charAt(0); // 'l', 'm', 'r'
+                    if (h.delta[s]) {
+                        min.d[sc] = {};
+                        if (h.delta[s].st !== undefined) min.d[sc].s = h.delta[s].st;
+                        if (h.delta[s].tr !== undefined) min.d[sc].t = h.delta[s].tr;
+                        if (h.delta[s].rebAdd) min.d[sc].r = h.delta[s].rebAdd;
+                    }
+                });
+            }
+            return min;
+        });
+    },
+
+    _hydrateHistory(minHistory) {
+        if (!Array.isArray(minHistory)) return [];
+        return minHistory.map(min => {
+            const h = { actor: min.a, action: min.c, delta: null };
+            if (min.d) {
+                h.delta = {};
+                if (min.d.w !== undefined) h.delta.weather = min.d.w;
+                if (min.d.f !== undefined) h.delta.field = min.d.f;
+
+                const sm = { l: 'left', m: 'mid', r: 'right' };
+                Object.keys(sm).forEach(sc => {
+                    if (min.d[sc]) {
+                        const fullSide = sm[sc];
+                        h.delta[fullSide] = {};
+                        if (min.d[sc].s !== undefined) h.delta[fullSide].st = min.d[sc].s;
+                        if (min.d[sc].t !== undefined) h.delta[fullSide].tr = min.d[sc].t;
+                        if (min.d[sc].r) h.delta[fullSide].rebAdd = min.d[sc].r;
+                    }
+                });
+            }
+            return h;
+        });
+    },
+
     /** Exports the current state to a shareable URL */
     exportToURL() {
         const exportData = {
@@ -1221,11 +1267,12 @@ const ui = {
             hpr:  document.getElementById('startHp_right').value,
             pt:   document.getElementById('potent').value,
             pk:   document.getElementById('pokey').value,
-            h:    store.history,
+            h:    this._minifyHistory(store.history), // On minifie l'historique
         };
 
         const jsonStr = JSON.stringify(exportData);
-        const encoded = btoa(encodeURIComponent(jsonStr));
+        // Utilisation de LZString au lieu du simple btoa
+        const encoded = LZString.compressToEncodedURIComponent(jsonStr);
 
         const url = new URL(window.location.href);
         url.searchParams.set('data', encoded);
@@ -1233,7 +1280,6 @@ const ui = {
         navigator.clipboard.writeText(url.href).then(() => {
             showToast('🔗 Shareable link copied to clipboard!');
         }).catch(() => {
-            // Fallback: show the URL in a prompt
             prompt('Copy this URL to share your strategy:', url.href);
         });
     },
@@ -1245,7 +1291,9 @@ const ui = {
         if (!dataParam) return;
 
         try {
-            const decoded = decodeURIComponent(atob(dataParam));
+            // Décompression avec LZString
+            const decoded = LZString.decompressFromEncodedURIComponent(dataParam);
+            if (!decoded) throw new Error("Invalid compression format");
             const data = JSON.parse(decoded);
 
             document.getElementById('bossSelect').value = importVal(data.b, 'custom');
@@ -1273,9 +1321,10 @@ const ui = {
             document.getElementById('pokey').value = importVal(data.pk, 0);
             document.getElementById('txt_pokey').textContent = importVal(data.pk, 0);
 
-            store.history = ui.validateHistory(data.h);
+            // Restauration (Hydratation) et validation de l'historique
+            const fullHistory = this._hydrateHistory(data.h || []);
+            store.history = ui.validateHistory(fullHistory);
 
-            // Lock boss inputs if a preset was selected
             if (data.b !== 'custom') {
                 document.querySelectorAll('.boss-prop').forEach(el => el.disabled = true);
                 document.querySelectorAll('.btn-stepper.boss-prop').forEach(el => el.disabled = true);
