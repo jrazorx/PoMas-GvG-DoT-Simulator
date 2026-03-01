@@ -1497,6 +1497,33 @@ const ui = {
 
 
 // ============================================================
+// AUTO-UPDATE CHECKER
+// ============================================================
+
+function checkForUpdates() {
+    // On lit la version actuelle du fichier chargé dans le navigateur
+    const currentVersion = document.querySelector('meta[name="app-version"]')?.content;
+    if (!currentVersion) return;
+
+    // On interroge le serveur (en contournant le cache grâce au timestamp) pour lire le HTML en ligne
+    fetch(window.location.pathname + '?t=' + Date.now())
+        .then(res => res.text())
+        .then(html => {
+            // On cherche la balise meta dans le nouveau HTML
+            const match = html.match(/<meta name="app-version" content="([^"]+)">/);
+            if (match && match[1] !== currentVersion) {
+                // Si la version en ligne est différente, on affiche un Toast
+                showToast('🔄 A new version of the simulator is available!', {
+                    duration: 15000,
+                    actionLabel: 'Update Now',
+                    onAction: () => location.reload() // Recharge la page
+                });
+            }
+        })
+        .catch(e => console.log('Update check failed', e));
+}
+
+// ============================================================
 // INITIALISATION
 // ============================================================
 
@@ -1535,6 +1562,9 @@ function initApp() {
 
     // Initial calculation
     ui.calc();
+
+    // Vérifie s'il y a une mise à jour en arrière-plan (Ajouté tout à la fin)
+    checkForUpdates();
 }
 
 // --- Bootstrap ---
