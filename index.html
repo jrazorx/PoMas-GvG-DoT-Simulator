@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasio Gym Battle Simulator</title>
+    <style>
+        /* Variables de couleurs - Thème Clair (Défaut) */
+        :root { 
+            --primary: #3498db; --secondary: #2ecc71; --danger: #e74c3c; 
+            --bg: #f4f7f9; --dark: #2c3e50; --card-bg: #ffffff;
+            --text-main: #333333; --text-muted: #666666; --text-dark: #555555;
+            --border-light: #eeeeee; --border-med: #dddddd; --border-dark: #cccccc;
+            --input-bg: #ffffff; --box-bg: #fafbfc;
+            --btn-bg: #ffffff; --btn-disabled-bg: #f0f0f0; --btn-disabled-color: #999999;
+            --log-bg: #ffffff; --log-entry-bg: #f8f9fa;
+            --badge-bg: #2c3e50; --badge-color: #ffffff;
+        }
+
+        /* Variables de couleurs - Thème Sombre */
+        [data-theme="dark"] {
+            --primary: #3498db; --secondary: #27ae60; --danger: #c0392b; 
+            --bg: #121212; --dark: #e0e0e0; --card-bg: #1e1e1e;
+            --text-main: #e0e0e0; --text-muted: #aaaaaa; --text-dark: #cccccc;
+            --border-light: #333333; --border-med: #444444; --border-dark: #555555;
+            --input-bg: #2d2d2d; --box-bg: #252525;
+            --btn-bg: #2d2d2d; --btn-disabled-bg: #222222; --btn-disabled-color: #555555;
+            --log-bg: #1e1e1e; --log-entry-bg: #252525;
+            --badge-bg: #e0e0e0; --badge-color: #121212;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: var(--text-main); transition: background 0.3s, color 0.3s; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 12px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; border: 1px solid var(--border-light); }
+        h2, h3, h4 { margin-top: 0; color: var(--dark); text-align: center; }
+        
+        /* Accordion Header */
+        .card-header-toggle { display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 2px solid var(--border-light); padding-bottom: 8px; margin-bottom: 12px; user-select: none;}
+        .card-header-toggle h3 { margin: 0; font-size: 15px; }
+        .section-title { text-align: left; font-size: 15px; border-bottom: 2px solid var(--border-light); padding-bottom: 6px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;}
+        
+        /* Elements compacts */
+        label { display: flex; align-items: center; font-size: 11px; font-weight: bold; margin-bottom: 3px; color: var(--text-muted); text-transform: uppercase; }
+        .compact { width: 100%; padding: 6px; border-radius: 4px; border: 1px solid var(--border-med); font-size: 13px; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); }
+        .compact:disabled { opacity: 0.5; cursor: not-allowed; background: var(--btn-disabled-bg); }
+        .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;}
+        .checkbox-row { display: flex; flex-wrap: wrap; gap: 15px; font-size: 13px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-light);}
+        .checkbox-row input:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Stepper */
+        .stepper { display: flex; align-items: center; background: var(--input-bg); border: 1px solid var(--border-med); border-radius: 4px; overflow: hidden; height: 29px;}
+        .btn-stepper { flex: 0 0 30px; background: transparent; border: none; color: var(--primary); font-weight: bold; font-size: 16px; cursor: pointer; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .btn-stepper:disabled { color: var(--btn-disabled-color); cursor: not-allowed; }
+        .btn-stepper:active:not(:disabled) { background: var(--border-light); }
+        .stepper-val { flex: 1; text-align: center; font-size: 13px; font-weight: bold; border-left: 1px solid var(--border-light); border-right: 1px solid var(--border-light); }
+
+        /* Boutons */
+        .btn { padding: 6px 12px; font-size: 13px; font-weight: bold; border-radius: 6px; border: 1px solid var(--border-dark); background: var(--btn-bg); color: var(--text-main); cursor: pointer; transition: 0.1s; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; background: var(--btn-disabled-bg); border-color: var(--border-med); color: var(--btn-disabled-color);}
+        .btn-active { background: var(--primary); color: white; border-color: #2980b9; }
+        .btn-primary { background: var(--primary); color: white; border-color: #2980b9; }
+        .btn-danger { background: var(--danger); color: white; border-color: #c0392b; }
+        .btn-group { display: flex; gap: 4px; }
+        .theme-toggle { position: absolute; top: 12px; right: 15px; background: none; border: none; font-size: 20px; cursor: pointer; color: white; }
+
+        /* Sections Formulaires */
+        .settings-section { border: 1px solid var(--border-med); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: var(--box-bg);}
+        .settings-title { font-size: 12px; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid var(--border-light); padding-bottom: 4px; }
+
+        /* Tooltip Icon */
+        .help-icon { display: inline-flex; align-items: center; justify-content: center; background: var(--primary); color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 10px; cursor: pointer; margin-left: 4px; text-transform: none; font-weight: bold;}
+        .help-icon:hover { opacity: 0.8; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+        .modal-content { background-color: var(--card-bg); margin: 20% auto; padding: 20px; border-radius: 12px; width: 85%; max-width: 400px; color: var(--text-main); box-shadow: 0 10px 25px rgba(0,0,0,0.3); position: relative; animation: modalIn 0.2s ease-out; }
+        @keyframes modalIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close-btn { color: var(--text-muted); position: absolute; top: 15px; right: 15px; font-size: 20px; font-weight: bold; cursor: pointer; line-height: 1;}
+        .close-btn:hover { color: var(--danger); }
+        .modal-title { color: var(--primary); margin-top: 0; border-bottom: 1px solid var(--border-light); padding-bottom: 10px;}
+
+        /* Dashboard */
+        .score-box { position: relative; background: var(--secondary); color: white; padding: 10px; border-radius: 12px 12px 0 0; text-align: center; display: flex; justify-content: space-around; align-items: center;}
+        .score-box h1 { margin: 0; font-size: 26px; }
+        .dashboard { background: var(--card-bg); border: 2px solid var(--secondary); border-top: none; padding: 10px; border-radius: 0 0 12px 12px; margin-bottom: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .dash-box { border: 1px solid var(--border-light); padding: 6px 4px; border-radius: 6px; background: var(--box-bg); text-align: center; overflow: hidden;}
+        .dash-name { font-size: 11px; font-weight: bold; color: var(--dark); display: block; margin-bottom: 4px;}
+        .dash-detail { font-size: 10px; color: var(--text-dark); line-height: 1.3;}
+        
+        /* Enemy Cards */
+        .enemy-card { border: 1px solid var(--border-med); border-radius: 8px; padding: 10px; background: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);}
+        .enemy-card-title { font-weight: bold; color: var(--danger); border-bottom: 1px solid var(--border-light); padding-bottom: 4px; margin-bottom: 8px; text-align: center; font-size: 13px; text-transform: uppercase;}
+        .mod-row-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 6px; gap: 5px; }
+        
+        /* Rebuff Badges */
+        .rebuff-tags-container { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; width: 100%; margin-top: 4px;}
+        .rebuff-badge { display: inline-flex; align-items: center; background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; gap: 6px;}
+        .rebuff-badge b { cursor: pointer; border-left: 1px solid rgba(255,255,255,0.4); padding-left: 6px; font-size: 12px; line-height: 1;}
+        .rebuff-badge b:hover { color: #f1c40f; }
+
+        /* Action Grid */
+        .action-panel { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+        .action-block { border: 2px solid var(--border-light); padding: 10px; border-radius: 8px; text-align: center; flex: 1; min-width: 200px; background: var(--card-bg);}
+        .action-block.user-block { border-color: var(--primary); }
+        .action-block.enemy-block { border-color: var(--danger); }
+        .user-action-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        
+        /* Timeline */
+        .timeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;}
+        .log-entry { border-left: 5px solid var(--primary); background: var(--log-bg); padding: 12px; margin-bottom: 8px; border-radius: 4px; position: relative; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);}
+        .log-entry.entry-phase { background: var(--log-entry-bg); border-left-color: #95a5a6; }
+        .log-header { font-weight: bold; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-light); margin-bottom: 8px; padding-bottom: 4px; align-items: center; }
+        .dmg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 5px; }
+        .total-line { font-weight: bold; color: var(--danger); margin-top: 8px; font-size: 14px; border-top: 1px dashed var(--border-dark); padding-top: 5px;}
+        .turn-badge { background: var(--badge-bg); color: var(--badge-color); padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .detail-item { color: var(--text-dark); font-size: 12px; margin-bottom: 2px; }
+    </style>
+</head>
+<body onload="initApp()">
+
+<div id="infoModal" class="modal" onclick="closeModalOnOutsideClick(event)">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3 id="modalTitle" class="modal-title">Title</h3>
+        <div id="modalDesc" style="font-size: 14px; line-height: 1.5;">Description</div>
+    </div>
+</div>
+
+<div class="container">
+    <div style="position: sticky; top: 0; z-index: 1000;">
+        <div class="score-box">
+            <div id="turnDisplay" style="font-weight: bold; font-size: 16px;">TURN 0</div>
+            <h1 id="scoreDisplay">0 pts</h1>
+            <div style="font-size: 14px; font-weight: bold;" id="dmgDisplay">Total DMG: 0</div>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌓</button>
+        </div>
+        <div class="dashboard">
+            <div style="text-align: center; font-size: 12px; font-weight: bold; margin-bottom: 8px; color: var(--dark);" id="envDisplay">
+                Weather: Clear | Field: None
+            </div>
+            <div class="dashboard-grid">
+                <div class="dash-box" id="dash_left"></div>
+                <div class="dash-box" id="dash_mid"></div>
+                <div class="dash-box" id="dash_right"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 12px;">
+        <div class="card-header-toggle" onclick="toggleSettings()">
+            <h3 style="display:flex; align-items:center; gap:8px;">⚙️ Boss Settings</h3>
+            <span id="settingsToggleIcon" style="font-size: 12px; font-weight: bold;">▼</span>
+        </div>
+        
+        <div id="globalSettingsContent">
+            <div class="grid-2">
+                <div>
+                    <label>Boss Selector</label>
+                    <select id="bossSelect" class="compact" onchange="applyBoss()">
+                        <option value="custom">-- Custom / Manual --</option>
+                        <option value="brock">Brock (Rock)</option>
+                        <option value="misty">Misty (Water)</option>
+                        <option value="surge">Lt. Surge (Electric)</option>
+                        <option value="erika">Erika (Grass)</option>
+                        <option value="koga">Koga (Poison)</option>
+                        <option value="sabrina">Sabrina (Psychic)</option>
+                        <option value="blaine">Blaine (Fire)</option>
+                        <option value="blue">Blue (Flying)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Circuit Level</label>
+                    <select id="circuit" class="compact" onchange="calc()">
+                        <option value="1">1 (10k pts)</option>
+                        <option value="2">2 (20k pts)</option>
+                        <option value="3">3 (30k pts)</option>
+                        <option value="4">4 (40k pts)</option>
+                        <option value="5">5 (50k pts)</option>
+                        <option value="6">6 (60k pts)</option>
+                        <option value="7">7 (75k pts)</option>
+                        <option value="8" selected>8+ (90k pts)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-auto">
+                <div><label>Weakness</label><select id="weakness" class="compact boss-prop" onchange="setCustomBoss(); calc()"></select></div>
+                
+                <div>
+                    <label>Lessen Poison <span class="help-icon" onclick="openHelp('lessP')">?</span></label>
+                    <div class="stepper">
+                        <button class="btn-stepper boss-prop" onclick="stepper('lessP', -1, 0, 10, true)">-</button>
+                        <span id="txt_lessP" class="stepper-val">10</span>
+                        <button class="btn-stepper boss-prop" onclick="stepper('lessP', 1, 0, 10, true)">+</button>
+                        <input type="hidden" id="lessP" value="10">
+                    </div>
+                </div>
+                
+                <div>
+                    <label>Lessen Trap <span class="help-icon" onclick="openHelp('lessT')">?</span></label>
+                    <div class="stepper">
+                        <button class="btn-stepper boss-prop" onclick="stepper('lessT', -1, 0, 10, true)">-</button>
+                        <span id="txt_lessT" class="stepper-val">9</span>
+                        <button class="btn-stepper boss-prop" onclick="stepper('lessT', 1, 0, 10, true)">+</button>
+                        <input type="hidden" id="lessT" value="9">
+                    </div>
+                </div>
+                
+                <div>
+                    <label>Lessen Damage Field <span class="help-icon" onclick="openHelp('lessF')">?</span></label>
+                    <div class="stepper">
+                        <button class="btn-stepper boss-prop" onclick="stepper('lessF', -1, 0, 10, true)">-</button>
+                        <span id="txt_lessF" class="stepper-val">9</span>
+                        <button class="btn-stepper boss-prop" onclick="stepper('lessF', 1, 0, 10, true)">+</button>
+                        <input type="hidden" id="lessF" value="9">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="checkbox-row">
+                <label style="text-transform:none"><input type="checkbox" id="sandShelter" class="boss-prop" onchange="setCustomBoss(); calc()"> Sand Shelter <span class="help-icon" onclick="openHelp('sandShelter')">?</span></label>
+                <label style="text-transform:none"><input type="checkbox" id="snowShelter" class="boss-prop" onchange="setCustomBoss(); calc()"> Snow Shelter <span class="help-icon" onclick="openHelp('snowShelter')">?</span></label>
+                <label style="text-transform:none"><input type="checkbox" id="escapeArtist" class="boss-prop" onchange="setCustomBoss(); calc()"> Escape Artist <span class="help-icon" onclick="openHelp('escapeArtist')">?</span></label>
+                <label style="text-transform:none"><input type="checkbox" id="antitoxin" class="boss-prop" onchange="setCustomBoss(); calc()"> Antitoxin <span class="help-icon" onclick="openHelp('antitoxin')">?</span></label>
+            </div>
+            
+            <div style="margin-top: 10px; border-top: 1px dashed var(--border-light); padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <div><label>Start HP Left (%)</label><input type="number" id="startHp_left" class="compact" value="100" min="1" max="100" onchange="calc()"></div>
+                <div><label>Start HP Mid (%)</label><input type="number" id="startHp_mid" class="compact" value="100" min="1" max="100" onchange="calc()"></div>
+                <div><label>Start HP Right (%)</label><input type="number" id="startHp_right" class="compact" value="100" min="1" max="100" onchange="calc()"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 12px;">
+        <h3 class="section-title">👤 Player Passives</h3>
+        <div class="grid-2">
+            <div>
+                <label>Potent Toxin <span class="help-icon" onclick="openHelp('potent')">?</span></label>
+                <div class="stepper"><button class="btn-stepper" onclick="stepper('potent', -1, 0, 999)">-</button><span id="txt_potent" class="stepper-val">0</span><button class="btn-stepper" onclick="stepper('potent', 1, 0, 999)">+</button><input type="hidden" id="potent" value="0"></div>
+            </div>
+            <div>
+                <label>Pokey Trap <span class="help-icon" onclick="openHelp('pokey')">?</span></label>
+                <div class="stepper"><button class="btn-stepper" onclick="stepper('pokey', -1, 0, 999)">-</button><span id="txt_pokey" class="stepper-val">0</span><button class="btn-stepper" onclick="stepper('pokey', 1, 0, 999)">+</button><input type="hidden" id="pokey" value="0"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" id="actionContainer" style="display:none;">
+        <div class="action-panel">
+            <div class="action-block user-block">
+                <label style="color:var(--primary); justify-content:center; border-bottom:1px solid var(--border-light); padding-bottom:5px; margin-bottom:10px;">User (You)</label>
+                <div style="display:flex; justify-content:center; gap:15px;">
+                    <div class="user-action-col">
+                        <label style="font-size:10px; display:inline-flex;">TM <span class="help-icon" onclick="event.stopPropagation(); openHelp('helpTM')">?</span></label>
+                        <button class="btn btn-primary" onclick="openModifier('TM')">TM</button>
+                    </div>
+                    <div class="user-action-col">
+                        <label style="font-size:10px; display:inline-flex;">PM <span class="help-icon" onclick="event.stopPropagation(); openHelp('helpPM')">?</span></label>
+                        <button class="btn btn-primary" onclick="openModifier('PM')">PM</button>
+                    </div>
+                    <div class="user-action-col">
+                        <label style="font-size:10px; display:inline-flex;">MAX <span class="help-icon" onclick="event.stopPropagation(); openHelp('helpMAX')">?</span></label>
+                        <button class="btn btn-primary" onclick="openModifier('MAX')">MAX Move</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-block enemy-block">
+                <label style="color:var(--danger); justify-content:center; border-bottom:1px solid var(--border-light); padding-bottom:5px; margin-bottom:10px;">Enemies</label>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <div><span style="font-size:11px; font-weight:bold; color:#e74c3c;">LEFT</span><br><div class="btn-group" style="margin-top:4px;"><button class="btn" id="btn_Left_TM" onclick="commitEnemy('Left', 'TM')">TM</button><button class="btn" id="btn_Left_PM" onclick="commitEnemy('Left', 'PM')">PM</button></div></div>
+                    <div><span style="font-size:11px; font-weight:bold; color:#e74c3c;">MID</span><br><div class="btn-group" style="margin-top:4px;"><button class="btn" id="btn_Mid_TM" onclick="commitEnemy('Mid', 'TM')">TM</button><button class="btn" id="btn_Mid_PM" onclick="commitEnemy('Mid', 'PM')">PM</button></div></div>
+                    <div><span style="font-size:11px; font-weight:bold; color:#e74c3c;">RIGHT</span><br><div class="btn-group" style="margin-top:4px;"><button class="btn" id="btn_Right_TM" onclick="commitEnemy('Right', 'TM')">TM</button><button class="btn" id="btn_Right_PM" onclick="commitEnemy('Right', 'PM')">PM</button></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" id="modifierPanel" style="display:none; border: 2px solid var(--primary); background: var(--box-bg);">
+        <h3 id="modTitle" style="color:var(--primary); margin-bottom: 15px; border-bottom:1px solid var(--border-light); padding-bottom:10px;">⭐ Initial Entry Effects</h3>
+        
+        <div style="display:flex; gap:15px; margin-bottom:15px;">
+            <div style="flex:1;"><label>Weather</label><select id="modWeather" class="compact"></select></div>
+            <div style="flex:1;"><label>Damage Field</label><select id="modField" class="compact"></select></div>
+        </div>
+
+        <div id="targetRowsContainer" class="grid-3">
+            </div>
+        
+        <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:12px; font-size:15px;" onclick="commitModifier()">Confirm Action</button>
+    </div>
+
+    <div class="timeline-header" id="tlHeader" style="display:none;">
+        <h3 style="margin: 0; color: var(--dark);">Battle Timeline</h3>
+        <div class="btn-group" style="flex-wrap: wrap; justify-content: flex-end;">
+            <button class="btn btn-primary" onclick="exportToURL()" style="border-radius: 4px;">🔗 Share Strategy</button>
+            <button class="btn btn-danger" onclick="undo()" style="border-radius: 4px;">↺ Undo Action</button>
+            <button class="btn" onclick="resetBattle()" style="border-radius: 4px;">Reset</button>
+        </div>
+    </div>
+    <div id="logArea"></div>
+</div>
+
+<script>
+    // --- Constants (Game Formulas) ---
+    const DMG_FRAC_WEATHER = 0.03125;   // 1/32
+    const DMG_FRAC_POISON = 0.25;       // 1/4
+    const DMG_FRAC_BAD_POISON = 0.125;  // 1/8
+    const DMG_FRAC_TRAP = 0.125;        // 1/8
+    const DMG_FRAC_FIELD = 0.0625;      // 1/16
+
+    const LESSEN_MULTS = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05];
+    
+    function getLessenMult(level) {
+        if (level < 0) return 1.0;
+        if (level > 10) return 0.05;
+        return LESSEN_MULTS[level];
+    }
+
+    // --- Data & Logic ---
+    const circuits = { 
+        1: { mid: 500500, side: 25025, pts: 10000 },
+        2: { mid: 3365000, side: 1732500, pts: 20000 },
+        3: { mid: 5544000, side: 277200, pts: 30000 },
+        4: { mid: 7983360, side: 3991680, pts: 40000 },
+        5: { mid: 10866240, side: 5433120, pts: 50000 },
+        6: { mid: 14192640, side: 7096320, pts: 60000 },
+        7: { mid: 17962560, side: 8981280, pts: 75000 },
+        8: { mid: 22176000, side: 11088000, pts: 90000 } 
+    };
+    
+    // Boss Database
+    const bossData = {
+        brock:   { weak: 'Ice',      lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: true,  snow: false },
+        misty:   { weak: 'Electric', lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false },
+        surge:   { weak: 'Ground',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false },
+        erika:   { weak: 'Fire',     lp: 10, lt: 9, lf: 9, anti: false, esc: true,  sand: false, snow: false },
+        koga:    { weak: 'Psychic',  lp: 10, lt: 9, lf: 9, anti: true,  esc: false, sand: false, snow: false },
+        sabrina: { weak: 'Dark',     lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false },
+        blaine:  { weak: 'Water',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false },
+        blue:    { weak: 'Rock',     lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false }
+    };
+
+    const rebuffMult = [0, 0.3, 0.5, 0.6];
+    const types = ['Fire','Water','Electric','Grass','Ice','Fighting','Poison','Ground','Flying','Psychic','Bug','Rock','Ghost','Dragon','Dark','Steel','Fairy'];
+    const typeIcons = { 'Fire':'🔥','Water':'💧','Electric':'⚡','Grass':'🌿','Ice':'❄️','Fighting':'🥊','Poison':'🟣','Ground':'🌍','Flying':'🌪️','Psychic':'👁️','Bug':'🐛','Rock':'🪨','Ghost':'👻','Dragon':'🐉','Dark':'🌙','Steel':'⚙️','Fairy':'✨' };
+
+    let typeOptionsHTML = '';
+
+    // Tooltip Content
+    const helpTexts = {
+        potent: { title: "Potent Toxin", desc: "Increases the amount of damage an opponent takes from being poisoned or badly poisoned." },
+        pokey: { title: "Pokey Trap", desc: "Increases the amount of damage an opponent takes from being trapped." },
+        lessP: { title: "Lessen Poison", desc: "Reduces damage from being poisoned or badly poisoned." },
+        lessT: { title: "Lessen Trap", desc: "Reduces damage from being trapped." },
+        lessF: { title: "Lessen Damage Field", desc: "Reduces damage the user takes from Damage Fields." },
+        rebuff: { title: "Type Rebuff", desc: "Type Rebuff modifies Damage Field damage. It only applies if the Damage Field type exactly matches the Rebuff type.<br><br><b>Damage Multipliers:</b><br>• 0 : 0%<br>• -1 : +30%<br>• -2 : +50%<br>• -3 : +60%" },
+        sandShelter: { title: "Sand Shelter", desc: "Protects the user from damage from a sandstorm." },
+        snowShelter: { title: "Snow Shelter", desc: "Protects the user from damage from a hailstorm." },
+        escapeArtist: { title: "Escape Artist", desc: "Prevents the user from becoming trapped." },
+        antitoxin: { title: "Antitoxin", desc: "Prevents the user from getting poisoned or badly poisoned." },
+        helpTM: { title: "Trainer Move (TM)", desc: "<b>Effects triggered on the user:</b><br>Weather and Damage Field damage only.<br><i>Does not trigger Poison or Trap damage.</i>" },
+        helpPM: { title: "Pokémon Move (PM)", desc: "<b>Effects triggered on the user:</b><br>Weather, Damage Field, Poison, and Trap damage." },
+        helpMAX: { title: "Max / Sync Move", desc: "<b>Max Move or Sync Move.</b><br>Stops the 90s timer in-game. The turn counter does not advance.<br><i>Effects triggered on the user: None.</i>" }
+    };
+
+    let history = [];
+    let cur = { weather: 'Clear', field: 'None', left: { st: 'None', tr: false, rebuffs: {}, tick: 0, dmg: 0 }, mid: { st: 'None', tr: false, rebuffs: {}, tick: 0, dmg: 0 }, right: { st: 'None', tr: false, rebuffs: {}, tick: 0, dmg: 0 } };
+    
+    // UI State for Panel
+    let pendingAction = 'Entry';
+    let pendingState = {};
+    let pendingRebuffs = { left: {}, mid: {}, right: {} };
+    
+    // Trackers for "Apply to all" logic
+    let sessionMods = { left: {st: false, tr: false}, mid: {st: false, tr: false}, right: {st: false, tr: false} };
+    let appliedToAll = { left: false, mid: false, right: false }; 
+
+    // Processed Battle Results
+    let finalState = {};
+    let finalScore = 0;
+    let finalDmg = 0;
+    let finalTurns = 0;
+    let finalLogHtml = '';
+
+    function initApp() {
+        if(localStorage.getItem('theme') === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+        }
+
+        typeOptionsHTML = types.map(t => `<option value="${t}">${t}</option>`).join('');
+        document.getElementById('weakness').innerHTML = typeOptionsHTML;
+
+        const container = document.getElementById('targetRowsContainer');
+        ['left', 'mid', 'right'].forEach(side => {
+            container.innerHTML += `
+                <div class="enemy-card">
+                    <div class="enemy-card-title">${side.toUpperCase()} Enemy</div>
+                    
+                    <div class="mod-row-inner">
+                        <label style="margin:0;">Status</label>
+                        <div class="btn-group" style="flex:1; margin-left:10px;">
+                            <button class="btn" style="flex:1; padding: 4px 0;" id="mod_${side}_st_Poison" onclick="setModSt('${side}','Poison')">🟣 Poison</button>
+                            <button class="btn" style="flex:1; padding: 4px 0;" id="mod_${side}_st_BadPoison" onclick="setModSt('${side}','BadPoison')">☠️ Bad P.</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mod-row-inner">
+                        <label style="margin:0;">Trap</label>
+                        <div class="btn-group" style="flex:1; margin-left:10px;">
+                            <button class="btn" style="width:100%; padding: 4px 0;" id="mod_${side}_tr" onclick="toggleModTrap('${side}')">🌪️ Trap</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mod-row-inner" style="border-top:1px dashed var(--border-light); padding-top:8px; margin-top:4px;">
+                        <label style="margin:0;">Rebuff <span class="help-icon" onclick="openHelp('rebuff')">?</span></label>
+                        <div style="display:flex; align-items:center; gap:5px; flex:1; justify-content:flex-end;">
+                            <select id="mod_${side}_reb_type" class="compact" style="width:85px;">
+                                ${typeOptionsHTML}
+                            </select>
+                            <button class="btn btn-primary" style="padding: 4px 10px;" onclick="addRebuffTag('${side}')">+ Add</button>
+                        </div>
+                    </div>
+                    <div id="mod_${side}_reb_tags" class="rebuff-tags-container"></div>
+                    
+                    <button id="btn_apply_all_${side}" class="btn" style="display:none; width:100%; margin-top:10px; color:var(--primary); border-color:var(--primary); background:var(--input-bg);" onclick="applyToAll('${side}')">⬇️ Apply to All</button>
+                </div>
+            `;
+        });
+        
+        importFromURL();
+
+        if (history.length > 0) {
+            document.getElementById('modifierPanel').style.display = 'none';
+            document.getElementById('actionContainer').style.display = 'block';
+            document.getElementById('tlHeader').style.display = 'flex';
+        } else {
+            document.getElementById('bossSelect').value = 'custom';
+            openModifier('Entry');
+        }
+        
+        calc();
+    }
+
+    // --- Import / Export Logic ---
+    function exportToURL() {
+        const exportData = {
+            b: document.getElementById('bossSelect').value,
+            c: document.getElementById('circuit').value,
+            w: document.getElementById('weakness').value,
+            lp: document.getElementById('lessP').value,
+            lt: document.getElementById('lessT').value,
+            lf: document.getElementById('lessF').value,
+            ss: document.getElementById('sandShelter').checked,
+            sno: document.getElementById('snowShelter').checked,
+            ea: document.getElementById('escapeArtist').checked,
+            anti: document.getElementById('antitoxin').checked,
+            hpl: document.getElementById('startHp_left').value,
+            hpm: document.getElementById('startHp_mid').value,
+            hpr: document.getElementById('startHp_right').value,
+            pt: document.getElementById('potent').value,
+            pk: document.getElementById('pokey').value,
+            h: history
+        };
+        
+        const jsonStr = JSON.stringify(exportData);
+        const encoded = btoa(encodeURIComponent(jsonStr));
+        
+        const url = new URL(window.location.href);
+        url.searchParams.set('data', encoded);
+        
+        navigator.clipboard.writeText(url.href).then(() => {
+            alert('Shareable link copied to clipboard!');
+        }).catch(err => {
+            alert('Failed to copy link automatically. Here is your URL:\n\n' + url.href);
+        });
+    }
+
+    function importFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const dataParam = urlParams.get('data');
+        if (dataParam) {
+            try {
+                const decoded = decodeURIComponent(atob(dataParam));
+                const importData = JSON.parse(decoded);
+                
+                document.getElementById('bossSelect').value = importData.b || 'custom';
+                document.getElementById('circuit').value = importData.c || '8';
+                document.getElementById('weakness').value = importData.w || 'Ice';
+                
+                document.getElementById('lessP').value = importData.lp !== undefined ? importData.lp : 10;
+                document.getElementById('txt_lessP').innerText = importData.lp !== undefined ? importData.lp : 10;
+                document.getElementById('lessT').value = importData.lt !== undefined ? importData.lt : 9;
+                document.getElementById('txt_lessT').innerText = importData.lt !== undefined ? importData.lt : 9;
+                document.getElementById('lessF').value = importData.lf !== undefined ? importData.lf : 9;
+                document.getElementById('txt_lessF').innerText = importData.lf !== undefined ? importData.lf : 9;
+                
+                document.getElementById('sandShelter').checked = importData.ss || false;
+                document.getElementById('snowShelter').checked = importData.sno || false;
+                document.getElementById('escapeArtist').checked = importData.ea || false;
+                document.getElementById('antitoxin').checked = importData.anti || false;
+                
+                document.getElementById('startHp_left').value = importData.hpl || 100;
+                document.getElementById('startHp_mid').value = importData.hpm || 100;
+                document.getElementById('startHp_right').value = importData.hpr || 100;
+                
+                document.getElementById('potent').value = importData.pt || 0;
+                document.getElementById('txt_potent').innerText = importData.pt || 0;
+                document.getElementById('pokey').value = importData.pk || 0;
+                document.getElementById('txt_pokey').innerText = importData.pk || 0;
+                
+                history = importData.h || [];
+                
+                if (importData.b !== 'custom') {
+                    document.querySelectorAll('.boss-prop').forEach(el => el.disabled = true);
+                    document.querySelectorAll('.btn-stepper.boss-prop').forEach(el => el.disabled = true);
+                }
+            } catch(e) {
+                console.error('Failed to import data', e);
+                alert("The link seems to be broken or corrupted. Loading a fresh battle instead.");
+            }
+        }
+    }
+
+    function resetBattle() {
+        if(confirm('Are you sure you want to reset the entire battle?')) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            location.reload();
+        }
+    }
+
+    // --- Modal Logic ---
+    function openHelp(key) {
+        document.getElementById('modalTitle').innerText = helpTexts[key].title;
+        document.getElementById('modalDesc').innerHTML = helpTexts[key].desc;
+        document.getElementById('infoModal').style.display = 'block';
+    }
+    
+    function closeModal() { document.getElementById('infoModal').style.display = 'none'; }
+    function closeModalOnOutsideClick(e) { if (e.target === document.getElementById('infoModal')) closeModal(); }
+
+    function toggleSettings() {
+        const content = document.getElementById('globalSettingsContent');
+        const icon = document.getElementById('settingsToggleIcon');
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            icon.innerText = '▼';
+        } else {
+            content.style.display = 'none';
+            icon.innerText = '▶';
+        }
+    }
+
+    function stepper(id, delta, min, max, isBossProp = false) {
+        let inp = document.getElementById(id);
+        if (inp.disabled) return; 
+        let v = parseInt(inp.value) || 0;
+        v += delta;
+        if (v < min) v = min;
+        if (v > max) v = max;
+        inp.value = v;
+        document.getElementById('txt_' + id).innerText = v;
+        if(isBossProp) setCustomBoss();
+        calc();
+    }
+
+    // --- Boss Defaults ---
+    function applyBoss() {
+        const b = document.getElementById('bossSelect').value;
+        const props = document.querySelectorAll('.boss-prop');
+        const btnSteppers = document.querySelectorAll('.btn-stepper.boss-prop');
+        
+        if(b === 'custom') {
+            props.forEach(el => el.disabled = false);
+            btnSteppers.forEach(el => el.disabled = false);
+            calc();
+            return;
+        }
+        
+        const data = bossData[b];
+        document.getElementById('weakness').value = data.weak;
+        
+        document.getElementById('lessP').value = data.lp;
+        document.getElementById('txt_lessP').innerText = data.lp;
+        document.getElementById('lessT').value = data.lt;
+        document.getElementById('txt_lessT').innerText = data.lt;
+        document.getElementById('lessF').value = data.lf;
+        document.getElementById('txt_lessF').innerText = data.lf;
+        
+        document.getElementById('antitoxin').checked = data.anti;
+        document.getElementById('escapeArtist').checked = data.esc;
+        document.getElementById('sandShelter').checked = data.sand;
+        document.getElementById('snowShelter').checked = data.snow;
+        
+        props.forEach(el => el.disabled = true);
+        btnSteppers.forEach(el => el.disabled = true);
+        calc();
+    }
+
+    function setCustomBoss() {
+        document.getElementById('bossSelect').value = 'custom';
+        document.querySelectorAll('.boss-prop').forEach(el => el.disabled = false);
+        document.querySelectorAll('.btn-stepper.boss-prop').forEach(el => el.disabled = false);
+    }
+
+    function toggleTheme() {
+        const body = document.body;
+        if(body.getAttribute('data-theme') === 'dark') {
+            body.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+        } else {
+            body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+
+    // --- Modifier Panel Logic ---
+    function openModifier(action) {
+        pendingAction = action;
+        pendingState = JSON.parse(JSON.stringify(cur));
+        pendingRebuffs = { left: {}, mid: {}, right: {} };
+        sessionMods = { left: {st: false, tr: false}, mid: {st: false, tr: false}, right: {st: false, tr: false} };
+        appliedToAll = { left: false, mid: false, right: false }; 
+        
+        let wSelect = document.getElementById('modWeather');
+        let fSelect = document.getElementById('modField');
+        
+        wSelect.innerHTML = '';
+        fSelect.innerHTML = '';
+        
+        if(action !== 'Entry') {
+            wSelect.innerHTML += `<option value="Unchanged">-- Unchanged --</option>`;
+            fSelect.innerHTML += `<option value="Unchanged">-- Unchanged --</option>`;
+        }
+        wSelect.innerHTML += `<option value="Clear">Clear</option><option value="Sandstorm">Sandstorm</option><option value="Hailstorm">Hailstorm</option>`;
+        fSelect.innerHTML += `<option value="None">None</option>` + typeOptionsHTML;
+        
+        if(action === 'Entry') {
+            wSelect.value = cur.weather;
+            fSelect.value = cur.field;
+        } else {
+            wSelect.value = 'Unchanged';
+            fSelect.value = 'Unchanged';
+        }
+
+        document.getElementById('modTitle').innerText = (action === 'Entry') ? '⭐ Initial Entry Effects' : `⚡ Configure Effects for User ${action}`;
+        document.getElementById('modifierPanel').style.display = 'block';
+        
+        updateModUI();
+        if(action !== 'Entry') document.getElementById('modifierPanel').scrollIntoView({behavior: 'smooth', block: 'center'});
+    }
+
+    function updateModUI() {
+        const anti = document.getElementById('antitoxin').checked;
+        const esc = document.getElementById('escapeArtist').checked;
+
+        ['left', 'mid', 'right'].forEach(side => {
+            const isStLocked = cur[side].st !== 'None';
+            
+            document.getElementById(`mod_${side}_st_Poison`).disabled = isStLocked || anti;
+            document.getElementById(`mod_${side}_st_BadPoison`).disabled = isStLocked || anti;
+            document.getElementById(`mod_${side}_tr`).disabled = cur[side].tr || esc;
+            
+            if (anti) pendingState[side].st = 'None';
+            if (esc) pendingState[side].tr = false;
+
+            document.getElementById(`mod_${side}_st_Poison`).className = (pendingState[side].st === 'Poison') ? 'btn btn-active' : 'btn';
+            document.getElementById(`mod_${side}_st_BadPoison`).className = (pendingState[side].st === 'BadPoison') ? 'btn btn-active' : 'btn';
+            document.getElementById(`mod_${side}_tr`).className = (pendingState[side].tr) ? 'btn btn-active' : 'btn';
+            
+            const container = document.getElementById(`mod_${side}_reb_tags`);
+            container.innerHTML = '';
+            
+            for (let t of types) {
+                let currentStack = cur[side].rebuffs[t] || 0;
+                let pendingStack = pendingRebuffs[side][t] || 0;
+                
+                if (pendingStack > 0) {
+                    let icon = typeIcons[t] || '';
+                    container.innerHTML += `<span class="rebuff-badge">${icon} ${t} -${pendingStack} <b onclick="removeRebuffTag('${side}','${t}')">×</b></span>`;
+                }
+            }
+
+            let hasChanges = sessionMods[side].st || sessionMods[side].tr || Object.keys(pendingRebuffs[side]).length > 0;
+            let applyBtn = document.getElementById(`btn_apply_all_${side}`);
+            if (applyBtn) {
+                applyBtn.style.display = (hasChanges && !appliedToAll[side]) ? 'block' : 'none';
+            }
+        });
+    }
+
+    function setModSt(side, val) { 
+        const anti = document.getElementById('antitoxin').checked;
+        if (cur[side].st !== 'None' || anti) return; 
+        
+        if (pendingState[side].st === val) pendingState[side].st = 'None';
+        else pendingState[side].st = val;
+        
+        sessionMods[side].st = true;
+        appliedToAll[side] = false;
+        updateModUI(); 
+    }
+    
+    function toggleModTrap(side) { 
+        const esc = document.getElementById('escapeArtist').checked;
+        if (cur[side].tr || esc) return; 
+        
+        pendingState[side].tr = !pendingState[side].tr; 
+        sessionMods[side].tr = true;
+        appliedToAll[side] = false;
+        updateModUI(); 
+    }
+    
+    function addRebuffTag(side) {
+        let t = document.getElementById(`mod_${side}_reb_type`).value;
+        let currentStack = cur[side].rebuffs[t] || 0;
+        let pendingStack = pendingRebuffs[side][t] || 0;
+        
+        if (currentStack + pendingStack < 3) {
+            pendingRebuffs[side][t] = pendingStack + 1;
+            appliedToAll[side] = false;
+            updateModUI();
+        }
+    }
+    
+    function removeRebuffTag(side, t) {
+        if (pendingRebuffs[side][t] > 0) {
+            pendingRebuffs[side][t]--;
+            if (pendingRebuffs[side][t] === 0) delete pendingRebuffs[side][t];
+            appliedToAll[side] = false;
+            updateModUI();
+        }
+    }
+
+    function applyToAll(source) {
+        const anti = document.getElementById('antitoxin').checked;
+        const esc = document.getElementById('escapeArtist').checked;
+
+        ['left', 'mid', 'right'].forEach(target => {
+            if (source === target) return;
+            
+            pendingState[target].st = cur[target].st;
+            pendingState[target].tr = cur[target].tr;
+            pendingRebuffs[target] = {};
+            
+            if (sessionMods[source].st && !anti) {
+                if (cur[target].st === 'None') {
+                    pendingState[target].st = pendingState[source].st;
+                    sessionMods[target].st = true; 
+                }
+            }
+            
+            if (sessionMods[source].tr && !esc) {
+                if (cur[target].tr === false) {
+                    pendingState[target].tr = pendingState[source].tr;
+                    sessionMods[target].tr = true; 
+                }
+            }
+            
+            for (let t in pendingRebuffs[source]) {
+                let amountToAdd = pendingRebuffs[source][t];
+                let currentStack = cur[target].rebuffs[t] || 0;
+                let maxAllowed = 3 - currentStack;
+                if (maxAllowed > 0) {
+                    pendingRebuffs[target][t] = Math.min(amountToAdd, maxAllowed);
+                }
+            }
+            
+            appliedToAll[target] = true;
+        });
+        
+        appliedToAll[source] = true;
+        updateModUI();
+    }
+
+    function commitModifier() {
+        const delta = { left: {}, mid: {}, right: {} };
+        
+        let wVal = document.getElementById('modWeather').value;
+        let fVal = document.getElementById('modField').value;
+        
+        if (pendingAction === 'Entry') {
+            if (wVal !== cur.weather) delta.weather = wVal;
+            if (fVal !== cur.field) delta.field = fVal;
+        } else {
+            if (wVal !== 'Unchanged') delta.weather = wVal;
+            if (fVal !== 'Unchanged') delta.field = fVal;
+        }
+        
+        ['left','mid','right'].forEach(s => {
+            if (pendingState[s].st !== cur[s].st) delta[s].st = pendingState[s].st;
+            if (pendingState[s].tr !== cur[s].tr) delta[s].tr = true;
+            if (Object.keys(pendingRebuffs[s]).length > 0) delta[s].rebAdd = { ...pendingRebuffs[s] };
+        });
+
+        history.push({ actor: pendingAction === 'Entry' ? 'Entry' : 'User', action: pendingAction, delta: delta });
+        document.getElementById('modifierPanel').style.display = 'none';
+        document.getElementById('actionContainer').style.display = 'block';
+        document.getElementById('tlHeader').style.display = 'flex';
+        calc();
+    }
+
+    function commitEnemy(actor, action) {
+        history.push({ actor: actor, action: action, delta: null });
+        document.getElementById('modifierPanel').style.display = 'none';
+        calc();
+    }
+
+    function undo() {
+        if(history.length > 0) { history.pop(); calc(); }
+    }
+
+    // --- Core Battle Math & Processing ---
+    function calc() {
+        processBattleState();
+        renderUI();
+    }
+
+    function processBattleState() {
+        const circ = circuits[document.getElementById('circuit').value];
+        const weak = document.getElementById('weakness').value;
+        const pt = parseInt(document.getElementById('potent').value) || 0;
+        const pk = parseInt(document.getElementById('pokey').value) || 0;
+        
+        const lP = parseInt(document.getElementById('lessP').value) || 0;
+        const lT = parseInt(document.getElementById('lessT').value) || 0;
+        const lF = parseInt(document.getElementById('lessF').value) || 0;
+        
+        const multP = getLessenMult(lP);
+        const multT = getLessenMult(lT);
+        const multF = getLessenMult(lF);
+        
+        const sSand = document.getElementById('sandShelter').checked;
+        const sSnow = document.getElementById('snowShelter').checked;
+        const anti = document.getElementById('antitoxin').checked;
+        const esc = document.getElementById('escapeArtist').checked;
+
+        let totalDmg = 0;
+        let simTurns = 0;
+        
+        let state = { 
+            weather: 'Clear', field: 'None',
+            left: { tick: 0, st: 'None', tr: false, rebuffs: {}, dmg: 0 },
+            mid: { tick: 0, st: 'None', tr: false, rebuffs: {}, dmg: 0 },
+            right: { tick: 0, st: 'None', tr: false, rebuffs: {}, dmg: 0 }
+        };
+
+        let logHtml = '';
+
+        history.forEach((h) => {
+            let actionTurn;
+            
+            if (h.delta) {
+                if (h.delta.weather !== undefined) state.weather = h.delta.weather;
+                if (h.delta.field !== undefined) state.field = h.delta.field;
+                ['left','mid','right'].forEach(s => {
+                    if (h.delta[s]) {
+                        if (h.delta[s].st && !anti) state[s].st = h.delta[s].st;
+                        if (h.delta[s].tr && !esc) state[s].tr = true;
+                        
+                        if (h.delta[s].rebAdd) {
+                            for (let t in h.delta[s].rebAdd) {
+                                state[s].rebuffs[t] = Math.min(3, (state[s].rebuffs[t] || 0) + h.delta[s].rebAdd[t]);
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (h.actor === 'Entry') {
+                actionTurn = 0;
+            } else if (h.actor === 'User' && h.action === 'MAX') {
+                actionTurn = simTurns;
+            } else {
+                simTurns++;
+                actionTurn = simTurns;
+            }
+
+            let turnDmg = 0;
+            let d = { w: 0, p: 0, t: 0, f: 0 };
+
+            if (['Left','Mid','Right'].includes(h.actor)) {
+                const target = h.actor.toLowerCase();
+                const hpMax = (target === 'mid') ? circ.mid : circ.side;
+                
+                let startPct = parseFloat(document.getElementById(`startHp_${target}`).value) || 100;
+                let actualStartHp = hpMax * (startPct / 100);
+                let currentHp = actualStartHp - state[target].dmg;
+                
+                // 1. Weather
+                if (currentHp > 0 && (h.action === 'PM' || h.action === 'TM')) {
+                    if (state.weather === 'Sandstorm' && !sSand) d.w = hpMax * DMG_FRAC_WEATHER;
+                    if (state.weather === 'Hailstorm' && !sSnow) d.w = hpMax * DMG_FRAC_WEATHER;
+                    if (d.w > currentHp) d.w = currentHp;
+                    currentHp -= d.w;
+                }
+                
+                // 2. Poison (PM only)
+                if (h.action === 'PM' && currentHp > 0 && state[target].st !== 'None' && !anti) {
+                    state[target].tick++;
+                    let effectiveTick = (state[target].st === 'BadPoison') ? Math.min(state[target].tick, 7) : 1;
+                    let base = (state[target].st === 'BadPoison') ? (effectiveTick * DMG_FRAC_BAD_POISON) : DMG_FRAC_POISON;
+                    
+                    d.p = hpMax * base * (1 + pt*0.1) * multP;
+                    
+                    if (d.p > currentHp) d.p = currentHp;
+                    currentHp -= d.p;
+                }
+                
+                // 3. Trap (PM only)
+                if (h.action === 'PM' && currentHp > 0 && state[target].tr && !esc) {
+                    d.t = hpMax * DMG_FRAC_TRAP * (1 + pk*0.1) * multT;
+                    if (d.t > currentHp) d.t = currentHp;
+                    currentHp -= d.t;
+                }
+                
+                // 4. Damage Field (PM or TM)
+                if (currentHp > 0 && state.field !== 'None' && (h.action === 'PM' || h.action === 'TM')) {
+                    let weakMult = (state.field === weak) ? 2 : 1;
+                    let rBonus = 0;
+                    if (state[target].rebuffs[state.field]) rBonus = rebuffMult[state[target].rebuffs[state.field]];
+                    
+                    d.f = hpMax * DMG_FRAC_FIELD * (1 + rBonus) * multF * weakMult;
+                    
+                    if (d.f > currentHp) d.f = currentHp;
+                    currentHp -= d.f;
+                }
+                
+                turnDmg = d.w + d.p + d.t + d.f;
+                state[target].dmg += turnDmg;
+                totalDmg += turnDmg;
+            }
+
+            // HTML Log generation for this Turn
+            const isUserOrEntry = (h.actor === 'Entry' || h.actor === 'User');
+            let detailsHtml = '';
+            
+            if (isUserOrEntry && h.delta) {
+                let changes = [];
+                if (h.delta.weather !== undefined) changes.push(`🌤️ Weather ➔ ${h.delta.weather}`);
+                if (h.delta.field !== undefined) changes.push(`🌐 Field ➔ ${h.delta.field}`);
+                ['left','mid','right'].forEach(s => {
+                    if (h.delta[s]) {
+                        const sName = s.toUpperCase();
+                        if (h.delta[s].st && !anti) changes.push(`☠️ ${sName} ➔ ${h.delta[s].st}`);
+                        if (h.delta[s].tr && !esc) changes.push(`🌪️ ${sName} ➔ Trapped`);
+                        if (h.delta[s].rebAdd) {
+                            for (let t in h.delta[s].rebAdd) {
+                                changes.push(`📉 ${sName} ➔ ${t} Rebuff -${h.delta[s].rebAdd[t]}`);
+                            }
+                        }
+                    }
+                });
+                if (changes.length > 0) detailsHtml = changes.map(c => `<div class="detail-item">${c}</div>`).join('');
+                else detailsHtml = '<div class="detail-item" style="font-style:italic">No effects modified.</div>';
+            } else if (!isUserOrEntry) {
+                if (turnDmg > 0) {
+                    detailsHtml = `<div class="dmg-grid">
+                        ${d.w > 0 ? `<div>❄️/🏜️ Weather: ${Math.floor(d.w).toLocaleString()}</div>` : ''}
+                        ${d.p > 0 ? `<div>☠️ Poison: ${Math.floor(d.p).toLocaleString()}</div>` : ''}
+                        ${d.t > 0 ? `<div>🌪️ Trap: ${Math.floor(d.t).toLocaleString()}</div>` : ''}
+                        ${d.f > 0 ? `<div>🌐 Field: ${Math.floor(d.f).toLocaleString()}</div>` : ''}
+                    </div><div class="total-line">Turn Passive DMG: ${Math.floor(turnDmg).toLocaleString()}</div>`;
+                } else {
+                    detailsHtml = '<div class="detail-item">No passive damage taken.</div>';
+                }
+            }
+
+            let extraClass = h.actor === 'Entry' ? 'entry-phase' : '';
+            let styleColor = h.actor === 'User' ? 'border-left-color: #f1c40f;' : '';
+            let actorDisplay = h.actor === 'Entry' ? '⭐ ENTRY PHASE' : 
+                               h.actor === 'User' ? `🦸‍♂️ USER ${h.action}` : 
+                               `👿 ${h.actor.toUpperCase()} ${h.action}`;
+
+            logHtml = `
+                <div class="log-entry ${extraClass}" style="${styleColor}">
+                    <div class="log-header">
+                        <span>${actorDisplay}</span>
+                        <span class="turn-badge">Turn ${actionTurn}</span>
+                    </div>
+                    ${detailsHtml}
+                </div>
+            ` + logHtml;
+        });
+
+        const totalHP = circ.mid + (circ.side * 2);
+        
+        finalState = JSON.parse(JSON.stringify(state));
+        cur = JSON.parse(JSON.stringify(state)); 
+        finalDmg = totalDmg;
+        finalScore = Math.round((totalDmg / totalHP) * circ.pts);
+        finalTurns = simTurns;
+        finalLogHtml = logHtml;
+    }
+
+    // --- Rendering UI ---
+    function renderUI() {
+        const circ = circuits[document.getElementById('circuit').value];
+        
+        document.getElementById('scoreDisplay').innerText = finalScore.toLocaleString() + ' pts';
+        document.getElementById('dmgDisplay').innerText = 'Total DMG: ' + Math.floor(finalDmg).toLocaleString();
+        document.getElementById('turnDisplay').innerText = `TURN ${finalTurns}`;
+        document.getElementById('envDisplay').innerText = `Environment — Weather: ${finalState.weather} | Field: ${finalState.field}`;
+        document.getElementById('logArea').innerHTML = finalLogHtml;
+
+        ['left', 'mid', 'right'].forEach(s => {
+            let startPct = parseFloat(document.getElementById(`startHp_${s}`).value) || 100;
+            let hpMax = s === 'mid' ? circ.mid : circ.side;
+            let actualStartHp = hpMax * (startPct / 100);
+            let hpRemainingPct = ((actualStartHp - finalState[s].dmg) / hpMax) * 100;
+            
+            let rebText = Object.entries(finalState[s].rebuffs).map(([t, val]) => `${typeIcons[t]||''} ${t} -${val}`).join(', ');
+            if (!rebText) rebText = 'None';
+
+            let isDead = hpRemainingPct <= 0;
+            let statusIcon = finalState[s].st === 'Poison' ? '🟣 Poison' : finalState[s].st === 'BadPoison' ? '☠️ Bad P.' : '✅ Healthy';
+
+            document.getElementById(`dash_${s}`).innerHTML = `
+                <span class="dash-name">${s.toUpperCase()} (${isDead ? '0.00' : hpRemainingPct.toFixed(2)}%)</span>
+                <div class="dash-detail">
+                    Stat: <span style="font-weight:bold; color:${finalState[s].st!=='None'?'#8e44ad':'inherit'}">${statusIcon}</span><br>
+                    Trap: <span style="font-weight:bold; color:${finalState[s].tr?'#e67e22':'inherit'}">${finalState[s].tr?'🌪️ Yes':'No'}</span><br>
+                    Rebuffs: <span style="font-weight:bold; color:#2980b9">${rebText}</span>
+                    ${isDead ? '<br><span style="color:var(--danger); font-weight:bold;">KO</span>' : ''}
+                </div>
+            `;
+
+            const btnIdPrefix = s.charAt(0).toUpperCase() + s.slice(1);
+            const btnTM = document.getElementById(`btn_${btnIdPrefix}_TM`);
+            const btnPM = document.getElementById(`btn_${btnIdPrefix}_PM`);
+            if (btnTM && btnPM) {
+                btnTM.disabled = isDead;
+                btnPM.disabled = isDead;
+            }
+        });
+        
+        if (document.getElementById('modifierPanel').style.display === 'block') {
+            updateModUI(); 
+        }
+    }
+</script>
+
+</body>
+</html>
