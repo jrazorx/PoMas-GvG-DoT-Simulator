@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="app-version" content="1.0.1">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="app-version" content="1.0.0">
     <title>Pasio Gym Battle Simulator</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<!-- Help Modal -->
 <div id="infoModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" id="modalCloseBtn" role="button" tabindex="0" aria-label="Close modal">&times;</span>
@@ -19,6 +20,7 @@
 </div>
 
 <div class="container">
+    <!-- Sticky Dashboard -->
     <div style="position: sticky; top: 0; z-index: 1000;">
         <div class="score-box">
             <div id="turnDisplay" style="font-weight: bold; font-size: 16px;">TURN 0</div>
@@ -38,6 +40,7 @@
         </div>
     </div>
 
+    <!-- Boss Settings Card -->
     <div class="card" style="padding: 12px;">
         <div class="card-header-toggle" id="settingsToggle">
             <h3 style="display:flex; align-items:center; gap:8px;">⚙️ Boss Settings</h3>
@@ -50,26 +53,14 @@
                     <label for="bossSelect">Boss Selector</label>
                     <select id="bossSelect" class="compact">
                         <option value="custom">-- Custom / Manual --</option>
-                        <optgroup label="KANTO (Gym Battle No. 1)">
-                            <option value="brock">Brock (Rock)</option>
-                            <option value="misty">Misty (Water)</option>
-                            <option value="surge">Lt. Surge (Electric)</option>
-                            <option value="erika">Erika (Grass)</option>
-                            <option value="koga">Koga (Poison)</option>
-                            <option value="sabrina">Sabrina (Psychic)</option>
-                            <option value="blaine">Blaine (Fire)</option>
-                            <option value="blue">Blue (Flying)</option>
-                        </optgroup>
-                        <optgroup label="GALAR (Gym Battle No. 2)">
-                            <option value="milo">Milo (Bug)</option>
-                            <option value="nessa">Nessa (Grass)</option>
-                            <option value="kabu">Kabu (Flying)</option>
-                            <option value="bea">Bea (Psychic)</option>
-                            <option value="bede">Bede (Ghost)</option>
-                            <option value="gordie">Gordie (Water)</option>
-                            <option value="marnie">Marnie (Poison)</option>
-                            <option value="raihan">Raihan (Fighting)</option>
-                        </optgroup>
+                        <option value="brock">Brock (Rock)</option>
+                        <option value="misty">Misty (Water)</option>
+                        <option value="surge">Lt. Surge (Electric)</option>
+                        <option value="erika">Erika (Grass)</option>
+                        <option value="koga">Koga (Poison)</option>
+                        <option value="sabrina">Sabrina (Psychic)</option>
+                        <option value="blaine">Blaine (Fire)</option>
+                        <option value="blue">Blue (Flying)</option>
                     </select>
                 </div>
                 <div>
@@ -123,15 +114,7 @@
                     </div>
                 </div>
             </div>
-
-            <div class="mod-row-inner" style="border-top:1px dashed var(--border-light); padding-top:8px; margin-top:10px;">
-                <label style="margin:0;">Field Immunities <span class="help-icon" role="button" tabindex="0" aria-label="Help: Field Immunity" data-help="dfImmunity">?</span></label>
-                <div style="display:flex; align-items:center; gap:5px; flex:1; justify-content:flex-end;">
-                    <select id="df_imm_type" class="compact boss-prop" style="width:85px;"></select>
-                    <button class="btn btn-primary boss-prop" data-add-df-imm="true">+ Add</button>
-                </div>
-            </div>
-            <div id="df_imm_tags" class="rebuff-tags-container" style="margin-bottom: 10px;"></div>
+            
             <div class="checkbox-row">
                 <label style="text-transform:none"><input type="checkbox" id="sandShelter" class="boss-prop"> Sand Shelter <span class="help-icon" role="button" tabindex="0" aria-label="Help: Sand Shelter" data-help="sandShelter">?</span></label>
                 <label style="text-transform:none"><input type="checkbox" id="snowShelter" class="boss-prop"> Snow Shelter <span class="help-icon" role="button" tabindex="0" aria-label="Help: Snow Shelter" data-help="snowShelter">?</span></label>
@@ -147,6 +130,7 @@
         </div>
     </div>
 
+    <!-- Player Passives Card -->
     <div class="card" style="padding: 12px;">
         <h3 class="section-title">👤 Player Passives</h3>
         <div class="grid-2">
@@ -171,6 +155,7 @@
         </div>
     </div>
 
+    <!-- Action Panel -->
     <div class="card" id="actionContainer" style="display:none;">
         <div class="action-panel">
             <div class="action-block user-block">
@@ -202,6 +187,7 @@
         </div>
     </div>
 
+    <!-- Modifier Panel -->
     <div class="card" id="modifierPanel" style="display:none; border: 2px solid var(--primary); background: var(--box-bg);">
         <h3 id="modTitle" style="color:var(--primary); margin-bottom: 15px; border-bottom:1px solid var(--border-light); padding-bottom:10px;">⭐ Initial Entry Effects</h3>
         <div style="display:flex; gap:15px; margin-bottom:15px;">
@@ -214,6 +200,7 @@
         <button class="btn btn-primary" id="confirmModifierBtn" style="width:100%; margin-top:15px; padding:12px; font-size:15px;">Confirm Action</button>
     </div>
 
+    <!-- Timeline -->
     <div class="timeline-header" id="tlHeader" style="display:none;">
         <h3 style="margin: 0; color: var(--dark);">Battle Timeline</h3>
         <div class="btn-group" style="flex-wrap: wrap; justify-content: flex-end;">
