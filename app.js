@@ -114,14 +114,24 @@ const CIRCUITS = Object.freeze({
 
 /** Boss preset database */
 const BOSS_DATA = Object.freeze({
-    brock:   { weak: 'Ice',      lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: true,  snow: false },
-    misty:   { weak: 'Electric', lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false },
-    surge:   { weak: 'Ground',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false },
-    erika:   { weak: 'Fire',     lp: 10, lt: 9, lf: 9, anti: false, esc: true,  sand: false, snow: false },
-    koga:    { weak: 'Psychic',  lp: 10, lt: 9, lf: 9, anti: true,  esc: false, sand: false, snow: false },
-    sabrina: { weak: 'Dark',     lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false },
-    blaine:  { weak: 'Water',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false },
-    blue:    { weak: 'Rock',     lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false },
+    // Kanto
+    brock:   { weak: 'Ice',      lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: true,  snow: false, dfImm: null },
+    misty:   { weak: 'Electric', lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    surge:   { weak: 'Ground',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    erika:   { weak: 'Fire',     lp: 10, lt: 9, lf: 9, anti: false, esc: true,  sand: false, snow: false, dfImm: null },
+    koga:    { weak: 'Psychic',  lp: 10, lt: 9, lf: 9, anti: true,  esc: false, sand: false, snow: false, dfImm: null },
+    sabrina: { weak: 'Dark',     lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    blaine:  { weak: 'Water',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    blue:    { weak: 'Rock',     lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    // Galar
+    milo:    { weak: 'Bug',      lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    nessa:   { weak: 'Grass',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    kabu:    { weak: 'Flying',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    bea:     { weak: 'Psychic',  lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    bede:    { weak: 'Ghost',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    gordie:  { weak: 'Water',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: 'Rock' },
+    marnie:  { weak: 'Poison',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    raihan:  { weak: 'Fighting', lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
 });
 
 /** All Pokémon types */
@@ -139,7 +149,7 @@ const TYPE_ICONS = Object.freeze({
 
 /** Tooltip / help text content */
 const HELP_TEXTS = Object.freeze({
-    potent:       { title: 'Potent Toxin',        desc: 'Increases the amount of damage an opponent takes from being poisoned or badly poisoned.' },
+    potent:       { title: 'Potent Toxin',         desc: 'Increases the amount of damage an opponent takes from being poisoned or badly poisoned.' },
     pokey:        { title: 'Pokey Trap',           desc: 'Increases the amount of damage an opponent takes from being trapped.' },
     lessP:        { title: 'Lessen Poison',        desc: 'Reduces damage from being poisoned or badly poisoned.' },
     lessT:        { title: 'Lessen Trap',          desc: 'Reduces damage from being trapped.' },
@@ -152,6 +162,7 @@ const HELP_TEXTS = Object.freeze({
     helpTM:       { title: 'Trainer Move (TM)',    desc: '<b>Effects triggered on the user:</b><br>Weather and Damage Field damage only.<br><i>Does not trigger Poison or Trap damage.</i>' },
     helpPM:       { title: 'Pokémon Move (PM)',    desc: '<b>Effects triggered on the user:</b><br>Weather, Damage Field, Poison, and Trap damage.' },
     helpMAX:      { title: 'Max / Sync Move',      desc: '<b>Max Move or Sync Move.</b><br>Stops the 90s timer in-game. The turn counter does not advance.<br><i>Effects triggered on the user: None.</i>' },
+    dfImmunity:   { title: 'DF Immunity',          desc: 'Protects the user from damage from the specified type\'s damage field.<br><br>For example, <b>Rock DF Immunity</b> protects the user from damage from Rock-type damage field.' },
 });
 
 /** Valid values for history validation */
@@ -336,7 +347,7 @@ const engine = {
      */
     simulate(history, config) {
         const { circuit, weakness, potent, pokey, lessenPoison, lessenTrap, lessenField,
-                sandShelter, snowShelter, antitoxin, escapeArtist, startHp } = config;
+                sandShelter, snowShelter, antitoxin, escapeArtist, dfImmunity, startHp } = config;
 
         const multP = getLessenMult(lessenPoison);
         const multT = getLessenMult(lessenTrap);
@@ -424,7 +435,8 @@ const engine = {
                 }
 
                 // 4. Damage Field (PM or TM)
-                if (currentHp > 0 && state.field !== FIELD_NONE && (h.action === ACTIONS.PM || h.action === ACTIONS.TM)) {
+                const isFieldImmune = (dfImmunity !== 'None' && state.field === dfImmunity);
+                if (currentHp > 0 && state.field !== FIELD_NONE && !isFieldImmune && (h.action === ACTIONS.PM || h.action === ACTIONS.TM)) {
                     const weakMult = (state.field === weakness) ? 2 : 1;
                     const rebuffStack = state[target].rebuffs[state.field] || 0;
                     const rBonus = REBUFF_MULT[rebuffStack] || 0;
@@ -480,6 +492,8 @@ const renderer = {
     initTypeOptions() {
         this._typeOptionsHTML = TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
         document.getElementById('weakness').innerHTML = this._typeOptionsHTML;
+        document.getElementById('dfImmunity').innerHTML =
+            '<option value="None">None</option>' + this._typeOptionsHTML;
     },
 
     /** Get type options HTML */
@@ -780,6 +794,7 @@ const ui = {
             snowShelter:   document.getElementById('snowShelter').checked,
             antitoxin:     document.getElementById('antitoxin').checked,
             escapeArtist:  document.getElementById('escapeArtist').checked,
+            dfImmunity:    document.getElementById('dfImmunity').value,
             startHp: {
                 left:  clampInput('startHp_left', 1, 100, 100),
                 mid:   clampInput('startHp_mid', 1, 100, 100),
@@ -871,6 +886,7 @@ const ui = {
         document.getElementById('escapeArtist').checked = data.esc;
         document.getElementById('sandShelter').checked = data.sand;
         document.getElementById('snowShelter').checked = data.snow;
+        document.getElementById('dfImmunity').value = data.dfImm || 'None';
 
         props.forEach(el => el.disabled = true);
         btnSteppers.forEach(el => el.disabled = true);
@@ -1267,6 +1283,7 @@ const ui = {
             hpr:  document.getElementById('startHp_right').value,
             pt:   document.getElementById('potent').value,
             pk:   document.getElementById('pokey').value,
+            dfi:  document.getElementById('dfImmunity').value,
             h:    this._minifyHistory(store.history), // On minifie l'historique
         };
 
@@ -1311,6 +1328,7 @@ const ui = {
             document.getElementById('snowShelter').checked = importVal(data.sno, false);
             document.getElementById('escapeArtist').checked = importVal(data.ea, false);
             document.getElementById('antitoxin').checked = importVal(data.anti, false);
+            document.getElementById('dfImmunity').value = importVal(data.dfi, 'None');
 
             document.getElementById('startHp_left').value = importVal(data.hpl, 100);
             document.getElementById('startHp_mid').value = importVal(data.hpm, 100);
@@ -1361,7 +1379,7 @@ const ui = {
         });
 
         // --- Boss checkboxes ---
-        ['sandShelter', 'snowShelter', 'escapeArtist', 'antitoxin'].forEach(id => {
+        ['sandShelter', 'snowShelter', 'escapeArtist', 'antitoxin', 'dfImmunity'].forEach(id => {
             document.getElementById(id).addEventListener('change', () => {
                 ui.setCustomBoss();
                 ui.calc();

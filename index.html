@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="app-version" content="1.0.1">
+    <meta name="app-version" content="1.1.0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pasio Gym Battle Simulator</title>
@@ -53,14 +53,26 @@
                     <label for="bossSelect">Boss Selector</label>
                     <select id="bossSelect" class="compact">
                         <option value="custom">-- Custom / Manual --</option>
-                        <option value="brock">Brock (Rock)</option>
-                        <option value="misty">Misty (Water)</option>
-                        <option value="surge">Lt. Surge (Electric)</option>
-                        <option value="erika">Erika (Grass)</option>
-                        <option value="koga">Koga (Poison)</option>
-                        <option value="sabrina">Sabrina (Psychic)</option>
-                        <option value="blaine">Blaine (Fire)</option>
-                        <option value="blue">Blue (Flying)</option>
+                        <optgroup label="Kanto">
+                            <option value="brock">Brock (Rock)</option>
+                            <option value="misty">Misty (Water)</option>
+                            <option value="surge">Lt. Surge (Electric)</option>
+                            <option value="erika">Erika (Grass)</option>
+                            <option value="koga">Koga (Poison)</option>
+                            <option value="sabrina">Sabrina (Psychic)</option>
+                            <option value="blaine">Blaine (Fire)</option>
+                            <option value="blue">Blue (Flying)</option>
+                        </optgroup>
+                        <optgroup label="Galar">
+                            <option value="milo">Milo (Grass)</option>
+                            <option value="nessa">Nessa (Water)</option>
+                            <option value="kabu">Kabu (Fire)</option>
+                            <option value="bea">Bea (Fighting)</option>
+                            <option value="bede">Bede (Fairy)</option>
+                            <option value="gordie">Gordie (Rock)</option>
+                            <option value="marnie">Marnie (Dark)</option>
+                            <option value="raihan">Raihan (Dragon)</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div>
@@ -120,6 +132,12 @@
                 <label style="text-transform:none"><input type="checkbox" id="snowShelter" class="boss-prop"> Snow Shelter <span class="help-icon" role="button" tabindex="0" aria-label="Help: Snow Shelter" data-help="snowShelter">?</span></label>
                 <label style="text-transform:none"><input type="checkbox" id="escapeArtist" class="boss-prop"> Escape Artist <span class="help-icon" role="button" tabindex="0" aria-label="Help: Escape Artist" data-help="escapeArtist">?</span></label>
                 <label style="text-transform:none"><input type="checkbox" id="antitoxin" class="boss-prop"> Antitoxin <span class="help-icon" role="button" tabindex="0" aria-label="Help: Antitoxin" data-help="antitoxin">?</span></label>
+                <label style="text-transform:none; align-items:center;">
+                    <span style="margin-right:4px;">DF Immunity <span class="help-icon" role="button" tabindex="0" aria-label="Help: DF Immunity" data-help="dfImmunity">?</span></span>
+                    <select id="dfImmunity" class="compact boss-prop" style="width:90px; display:inline-block;">
+                        <option value="None">None</option>
+                    </select>
+                </label>
             </div>
             
             <div style="margin-top: 10px; border-top: 1px dashed var(--border-light); padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
