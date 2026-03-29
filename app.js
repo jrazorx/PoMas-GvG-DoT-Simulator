@@ -100,38 +100,64 @@ const REBUFF_MULT = Object.freeze([0, 0.3, 0.5, 0.6]);
 /** Maximum rebuff stacks per type per enemy */
 const MAX_REBUFF_STACKS = 3;
 
-/** Circuit level data: HP pools and point caps */
-const CIRCUITS = Object.freeze({
-    1: { mid: 500500,    side: 25025,    pts: 10000 },
-    2: { mid: 3365000,   side: 1732500,  pts: 20000 },
-    3: { mid: 5544000,   side: 277200,   pts: 30000 },
-    4: { mid: 7983360,   side: 3991680,  pts: 40000 },
-    5: { mid: 10866240,  side: 5433120,  pts: 50000 },
-    6: { mid: 14192640,  side: 7096320,  pts: 60000 },
-    7: { mid: 17962560,  side: 8981280,  pts: 75000 },
-    8: { mid: 22176000,  side: 11088000, pts: 90000 },
+/** Circuit level data: HP pools (shared across all regions) */
+const CIRCUIT_HP = Object.freeze({
+    1: { mid: 500500,    side: 250250   },
+    2: { mid: 3465000,   side: 1732500  },
+    3: { mid: 5544000,   side: 2772000  },
+    4: { mid: 7983360,   side: 3991680  },
+    5: { mid: 10866240,  side: 5433120  },
+    6: { mid: 14192640,  side: 7096320  },
+    7: { mid: 17962560,  side: 8981280  },
+    8: { mid: 22176000,  side: 11088000 },
 });
+
+/** Circuit level data: point caps per region */
+const CIRCUIT_PTS = Object.freeze({
+    kanto: { 1: 10000, 2: 20000, 3: 30000, 4: 40000, 5: 50000, 6: 60000, 7: 75000, 8: 90000 },
+    galar: { 1: 10000, 2: 35000, 3: 80000, 4: 100000, 5: 125000, 6: 150000, 7: 175000, 8: 200000 },
+});
+
+/** Valid region identifiers */
+const REGIONS = Object.freeze(['kanto', 'galar']);
+
+/** Default region */
+const DEFAULT_REGION = 'kanto';
+
+/**
+ * Assembles a full circuit object { mid, side, pts } from HP and PTS tables.
+ * @param {number|string} level - Circuit level (1–8)
+ * @param {string} region - 'kanto' or 'galar'
+ * @returns {Object} { mid, side, pts }
+ */
+function getCircuit(level, region) {
+    const lvl = parseInt(level) || 8;
+    const clampedLvl = Math.max(1, Math.min(8, lvl));
+    const hp = CIRCUIT_HP[clampedLvl];
+    const pts = (CIRCUIT_PTS[region] || CIRCUIT_PTS[DEFAULT_REGION])[clampedLvl];
+    return { mid: hp.mid, side: hp.side, pts };
+}
 
 /** Boss preset database */
 const BOSS_DATA = Object.freeze({
     // Kanto
-    brock:   { weak: 'Ice',      lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: true,  snow: false, dfImm: null },
-    misty:   { weak: 'Electric', lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
-    surge:   { weak: 'Ground',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
-    erika:   { weak: 'Fire',     lp: 10, lt: 9, lf: 9, anti: false, esc: true,  sand: false, snow: false, dfImm: null },
-    koga:    { weak: 'Psychic',  lp: 10, lt: 9, lf: 9, anti: true,  esc: false, sand: false, snow: false, dfImm: null },
-    sabrina: { weak: 'Dark',     lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
-    blaine:  { weak: 'Water',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
-    blue:    { weak: 'Rock',     lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    brock:   { region: 'kanto', weak: 'Ice',      lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: true,  snow: false, dfImm: null },
+    misty:   { region: 'kanto', weak: 'Electric', lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    surge:   { region: 'kanto', weak: 'Ground',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    erika:   { region: 'kanto', weak: 'Fire',     lp: 10, lt: 9, lf: 9, anti: false, esc: true,  sand: false, snow: false, dfImm: null },
+    koga:    { region: 'kanto', weak: 'Psychic',  lp: 10, lt: 9, lf: 9, anti: true,  esc: false, sand: false, snow: false, dfImm: null },
+    sabrina: { region: 'kanto', weak: 'Dark',     lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    blaine:  { region: 'kanto', weak: 'Water',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    blue:    { region: 'kanto', weak: 'Rock',     lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
     // Galar
-    milo:    { weak: 'Bug',      lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
-    nessa:   { weak: 'Grass',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
-    kabu:    { weak: 'Flying',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
-    bea:     { weak: 'Psychic',  lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
-    bede:    { weak: 'Ghost',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
-    gordie:  { weak: 'Water',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: 'Rock' },
-    marnie:  { weak: 'Poison',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
-    raihan:  { weak: 'Fighting', lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    milo:    { region: 'galar', weak: 'Bug',      lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    nessa:   { region: 'galar', weak: 'Grass',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    kabu:    { region: 'galar', weak: 'Flying',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    bea:     { region: 'galar', weak: 'Psychic',  lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    bede:    { region: 'galar', weak: 'Ghost',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    gordie:  { region: 'galar', weak: 'Water',    lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: 'Rock' },
+    marnie:  { region: 'galar', weak: 'Poison',   lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
+    raihan:  { region: 'galar', weak: 'Fighting', lp: 10, lt: 9, lf: 9, anti: false, esc: false, sand: false, snow: false, dfImm: null },
 });
 
 /** All Pokémon types */
@@ -782,8 +808,9 @@ const ui = {
      */
     readConfig() {
         const circuitVal = document.getElementById('circuit').value;
+        const region = ui.getRegion();
         return {
-            circuit:       CIRCUITS[circuitVal] || CIRCUITS[8],
+            circuit:       getCircuit(circuitVal, region),
             weakness:      document.getElementById('weakness').value,
             potent:        parseInt(document.getElementById('potent').value) || 0,
             pokey:         parseInt(document.getElementById('pokey').value) || 0,
@@ -868,6 +895,8 @@ const ui = {
         if (b === 'custom') {
             props.forEach(el => el.disabled = false);
             btnSteppers.forEach(el => el.disabled = false);
+            document.getElementById('regionContainer').style.display = 'block';
+            ui.updateCircuitLabels(ui.getRegion());
             ui.calc();
             return;
         }
@@ -887,6 +916,10 @@ const ui = {
         document.getElementById('sandShelter').checked = data.sand;
         document.getElementById('snowShelter').checked = data.snow;
         document.getElementById('dfImmunity').value = data.dfImm || 'None';
+        // Update region and circuit labels
+        document.getElementById('region').value = data.region;
+        document.getElementById('regionContainer').style.display = 'none';
+        ui.updateCircuitLabels(data.region);
 
         props.forEach(el => el.disabled = true);
         btnSteppers.forEach(el => el.disabled = true);
@@ -898,6 +931,8 @@ const ui = {
         document.getElementById('bossSelect').value = 'custom';
         document.querySelectorAll('.boss-prop').forEach(el => el.disabled = false);
         document.querySelectorAll('.btn-stepper.boss-prop').forEach(el => el.disabled = false);
+        document.getElementById('regionContainer').style.display = 'block';
+        ui.updateCircuitLabels(ui.getRegion());
     },
 
     /** Toggles dark/light theme */
@@ -1284,6 +1319,7 @@ const ui = {
             pt:   document.getElementById('potent').value,
             pk:   document.getElementById('pokey').value,
             dfi:  document.getElementById('dfImmunity').value,
+            rg:   ui.getRegion(),
             h:    this._minifyHistory(store.history), // On minifie l'historique
         };
 
@@ -1329,6 +1365,7 @@ const ui = {
             document.getElementById('escapeArtist').checked = importVal(data.ea, false);
             document.getElementById('antitoxin').checked = importVal(data.anti, false);
             document.getElementById('dfImmunity').value = importVal(data.dfi, 'None');
+            document.getElementById('region').value = importVal(data.rg, DEFAULT_REGION);
 
             document.getElementById('startHp_left').value = importVal(data.hpl, 100);
             document.getElementById('startHp_mid').value = importVal(data.hpm, 100);
@@ -1347,6 +1384,14 @@ const ui = {
                 document.querySelectorAll('.boss-prop').forEach(el => el.disabled = true);
                 document.querySelectorAll('.btn-stepper.boss-prop').forEach(el => el.disabled = true);
             }
+
+            // Update region visibility and circuit labels
+            if (data.b !== 'custom') {
+                document.getElementById('regionContainer').style.display = 'none';
+            } else {
+                document.getElementById('regionContainer').style.display = 'block';
+            }
+            ui.updateCircuitLabels(importVal(data.rg, DEFAULT_REGION));
         } catch (e) {
             console.error('Failed to import data from URL:', e);
             showToast('⚠️ The shared link appears corrupted. Loading fresh battle.', { duration: 5000 });
@@ -1371,6 +1416,12 @@ const ui = {
 
         // --- Circuit selector ---
         document.getElementById('circuit').addEventListener('change', () => ui.calc());
+
+        // --- Region selector ---
+        document.getElementById('region').addEventListener('change', () => {
+            ui.updateCircuitLabels(ui.getRegion());
+            ui.calc();
+        });
 
         // --- Weakness selector ---
         document.getElementById('weakness').addEventListener('change', () => {
@@ -1511,6 +1562,36 @@ const ui = {
         document.getElementById('undoBtn').addEventListener('click', () => ui.undo());
         document.getElementById('resetBtn').addEventListener('click', () => ui.resetBattle());
     },
+
+    /**
+     * Updates the circuit selector option labels with point values for the given region.
+     * @param {string} region - 'kanto' or 'galar'
+     */
+    updateCircuitLabels(region) {
+        const pts = CIRCUIT_PTS[region] || CIRCUIT_PTS[DEFAULT_REGION];
+        const select = document.getElementById('circuit');
+        for (let i = 0; i < select.options.length; i++) {
+            const opt = select.options[i];
+            const lvl = parseInt(opt.value);
+            const p = pts[lvl];
+            const pLabel = p >= 1000 ? (p / 1000) + 'k' : p;
+            opt.textContent = (lvl === 8 ? '8+' : lvl) + ' (' + pLabel + ' pts)';
+        }
+    },
+
+    /**
+     * Determines the current region from the boss selector or region selector.
+     * @returns {string} 'kanto' or 'galar'
+     */
+    getRegion() {
+        const boss = document.getElementById('bossSelect').value;
+        if (boss !== 'custom') {
+            const data = BOSS_DATA[boss];
+            return data ? data.region : DEFAULT_REGION;
+        }
+        return document.getElementById('region').value || DEFAULT_REGION;
+    },
+
 };
 
 
@@ -1572,9 +1653,11 @@ function initApp() {
         document.getElementById('modifierPanel').style.display = 'none';
         document.getElementById('actionContainer').style.display = 'block';
         document.getElementById('tlHeader').style.display = 'flex';
+        ui.updateCircuitLabels(ui.getRegion());
     } else {
         document.getElementById('bossSelect').value = 'custom';
         ui.openModifier(ACTIONS.ENTRY);
+        ui.updateCircuitLabels(DEFAULT_REGION);
     }
 
     // Initial calculation

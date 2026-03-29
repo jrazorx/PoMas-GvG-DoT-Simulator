@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="app-version" content="2">
+    <meta name="app-version" content="3">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pasio Gym Battle Simulator</title>
@@ -84,16 +84,23 @@
                     </select>
                 </div>
                 <div>
+                    <div id="regionContainer" style="margin-bottom: 6px;">
+                        <label for="region">Region</label>
+                        <select id="region" class="compact">
+                            <option value="kanto">Kanto</option>
+                            <option value="galar">Galar</option>
+                        </select>
+                    </div>
                     <label for="circuit">Circuit Level</label>
                     <select id="circuit" class="compact">
-                        <option value="1">1 (10k pts)</option>
-                        <option value="2">2 (20k pts)</option>
-                        <option value="3">3 (30k pts)</option>
-                        <option value="4">4 (40k pts)</option>
-                        <option value="5">5 (50k pts)</option>
-                        <option value="6">6 (60k pts)</option>
-                        <option value="7">7 (75k pts)</option>
-                        <option value="8" selected>8+ (90k pts)</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8" selected>8+</option>
                     </select>
                 </div>
             </div>
