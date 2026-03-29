@@ -1519,22 +1519,21 @@ const ui = {
 // ============================================================
 
 function checkForUpdates() {
-    // On lit la version actuelle du fichier chargé dans le navigateur
-    const currentVersion = document.querySelector('meta[name="app-version"]')?.content;
+    if (window.location.protocol === 'file:') return;
+
+    const currentVersion = parseInt(document.querySelector('meta[name="app-version"]')?.content);
     if (!currentVersion) return;
 
-    // On interroge le serveur (en contournant le cache grâce au timestamp) pour lire le HTML en ligne
     fetch(window.location.pathname + '?t=' + Date.now())
         .then(res => res.text())
         .then(html => {
-            // On cherche la balise meta dans le nouveau HTML
-            const match = html.match(/<meta name="app-version" content="([^"]+)">/);
-            if (match && match[1] !== currentVersion) {
-                // Si la version en ligne est différente, on affiche un Toast
+            const match = html.match(/<meta name="app-version" content="(\d+)">/);
+            const serverVersion = match ? parseInt(match[1]) : 0;
+            if (serverVersion > currentVersion) {
                 showToast('🔄 A new version of the simulator is available!', {
                     duration: 15000,
                     actionLabel: 'Update Now',
-                    onAction: () => location.reload() // Recharge la page
+                    onAction: () => location.reload()
                 });
             }
         })
