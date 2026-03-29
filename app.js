@@ -1584,6 +1584,3 @@ function initApp() {
     // Vérifie s'il y a une mise à jour en arrière-plan (Ajouté tout à la fin)
     checkForUpdates();
 }
-
-// --- Bootstrap ---
-document.addEventListener('DOMContentLoaded', initApp);
